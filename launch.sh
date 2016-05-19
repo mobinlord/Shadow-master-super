@@ -107,6 +107,16 @@ install() {
   cd ..
   install_luarocks
   install_rocks
+  
+  if [ -d /mnt/c/Windows ]; then
+    echo "Patching bot.lua for Windows 10 support..."
+    sed -i '5d' bot/bot.lua
+    sed -i '5d' bot/bot.lua
+    sed -i '5i\require("bot/utils")' bot/bot.lua
+    sed -i '6i\require("bot/permissions")' bot/bot.lua
+    sed -i '7i\--File patched to support W10' bot/bot.lua
+  fi
+  
 }
 
 if [ "$1" = "install" ]; then
@@ -126,15 +136,38 @@ else
     exit 1
   fi
   
-  chmod 777 blackplus.sh
+  chmod 777 steady.sh
+  chmod 777 start.sh
+  chmod 777 config_fix.sh
   
-  #Adding some color. By @It_Is_Crazy
+  #Adding some color. By @iicc1 :D
    echo -e "\033[38;5;208m"
-   echo -e "     > Channel : @Shadowking_Ch                        "
-   echo -e "     > Developer : @It_Is_Crazy                       "
-   echo -e "     > Bot ID : @Shadowking_TG                        "
-   echo -e "     > Github : GitHub.com/mobinlord/Shadow-master-super     "
+   echo -e "      ____  ____ _____                        "
+   echo -e "     |    \|  _ )_   _|___ ____   __  __      "
+   echo -e "     | |_  )  _ \ | |/ .__|  _ \_|  \/  |     "
+   echo -e "     |____/|____/ |_|\____/\_____|_/\/\_|     "
    echo -e "                                              \033[0;00m"
    echo -e "\e[36m"
+   
+  if [ -f data/config.lua ]; then
+    ./config_fix.sh
+  fi
+  
+  if [ -f plugins/gban_installer.lua ]; then
+    
+    L=$(wc -l plugins/gban_installer.lua | cut -d " " -f1)
+    R=$(echo $L -20 | bc)
+    
+    #N=$(grep -nr "send_msg('chat#id'.*" plugins/gban_installer.lua | cut -d ":" -f1)
+    #M=$(grep -nr "send_msg('channel#id'.*" plugins/gban_installer.lua | cut -d ":" -f1)
+    
+    grep -v "send_msg('chat#id'.*" plugins/gban_installer.lua > gban1
+    grep -v "send_msg('channel#id'.*" gban1 > plugins/gban_installer.lua
+    sed -i "s/.*chat.*/&\n    send_msg('chat#id'..msg.to.id, '$R accounts globally banned. ☠', ok_cb, false)/" plugins/gban_installer.lua
+    sed -i "s/.*channel.*/&\n    send_msg('channel#id'..msg.to.id, '$R accounts globally banned. ☠', ok_cb, false)/" plugins/gban_installer.lua
+    rm gban1
+    
+  fi
+  
   ./tg/bin/telegram-cli -k ./tg/tg-server.pub -s ./bot/bot.lua -l 1 -E $@
 fi
